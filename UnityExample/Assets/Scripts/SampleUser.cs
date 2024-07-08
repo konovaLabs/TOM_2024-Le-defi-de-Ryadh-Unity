@@ -4,20 +4,46 @@ using UnityEngine.UI;
 #if UNITY_EDITOR_OSX || UNITY_IOS
 using UnityCoreBluetooth;
 
+public class WheelSample
+{
+    public int counter;
+    public int timestamp;
+
+    public WheelSample(byte[] data)
+    {
+        if (data.Length < 7)
+        {
+            return;
+        }
+
+        this.counter = BitConverter.ToInt32(data, 1);
+        this.timestamp = BitConverter.ToInt16(data, 5);
+    }   
+}
+
 public class SampleUser : MonoBehaviour
 {
 
-    public Text text;
-    public Text text2;
+
+    public Text wheel_left_text;
+    public Text wheel_right_text;
 
     private CoreBluetoothManager manager;
-    private CoreBluetoothCharacteristic characteristic;
-    private CoreBluetoothCharacteristic characteristic2;
+    private CoreBluetoothCharacteristic characteristic_left_wheel = null;
+    private CoreBluetoothCharacteristic characteristic_right_wheel = null;
 
+    const string UUID_service_left_wheel = "02345678-1234-5678-1234-56789ABCDEF0";
+    const string UUID_service_right_wheel = "12345678-1234-5678-1234-56789ABCDEF0";
+    const string UUID_characteristic_left_wheel = "02345678-1234-5678-1234-56789ABCDEF1";
+    const string UUID_characteristic_right_wheel = "12345678-1234-5678-1234-56789ABCDEF1";
+    const string periph_name = "La Roue"; 
 
-    public String peripheral_name;
+    byte[] value_1 = null;
+    byte[] value_2 = null;
 
-    byte[] value_1, value_2;
+    WheelSample last_sample_left_wheel = null;
+    WheelSample last_sample_right_wheel = null;
+
     // Use this for initialization 
     void Start()
     {
@@ -30,16 +56,24 @@ public class SampleUser : MonoBehaviour
             manager.StartScan();
         });
 
+
         manager.OnDiscoverPeripheral((CoreBluetoothPeripheral peripheral) =>
         {
-            if (peripheral.name != "")
-                Debug.Log("discover peripheral name: " + peripheral.name + " / " + peripheral_name);
-            if (peripheral.name != "TOM HotWheel" && peripheral.name != "TOM HotWheel2")
+            //if (peripheral.name != "")
+            //{
+            //    //Debug.Log("discover peripheral name: " + peripheral.name);
+            //}
+            if (peripheral.name != "La Roue")
             {
                 return;
             }
+            Debug.Log("Scan to peripheral name: " + peripheral.name);
             //manager.StopScan(); 
             manager.ConnectToPeripheral(peripheral);
+            //if(characteristic != null && characteristic2 != null)
+            //{
+            //    manager.StopScan();
+            //}
         });
 
         manager.OnConnectPeripheral((CoreBluetoothPeripheral peripheral) =>
@@ -50,32 +84,50 @@ public class SampleUser : MonoBehaviour
 
         manager.OnDiscoverService((CoreBluetoothService service) =>
         {
-            Debug.Log("discover service uuid: " + service.uuid);
-            switch (service.uuid)
+            Debug.Log("discover service uuid: " + service.uuid + " / " + UUID_service_left_wheel);
+            if (service.uuid == UUID_service_left_wheel || service.uuid == UUID_service_right_wheel)
             {
-                case "12345678-1234-5678-1234-56789ABCDEF0":
-                case "02345678-1234-5678-1234-56789ABCDEF0":
                     service.discoverCharacteristics();
-                    break;
-                default:
-                    return;
+
             }
+            //switch (service.uuid)
+            //{
+            //    case UUID_service_left_wheel:
+            //    case UUID_service_right_wheel:
+            //        break;
+            //    default:
+            //        Debug.Log("Return");
+            //        return;
+            //}
         });
 
 
         manager.OnDiscoverCharacteristic((CoreBluetoothCharacteristic characteristic) =>
         {
-            switch (characteristic.Uuid)
+            Debug.Log("OnDiscoverCharacteristic " + characteristic.Uuid);
+            if (characteristic.Uuid == UUID_characteristic_left_wheel)
             {
-                case "12345678-1234-5678-1234-56789ABCDEF1":
-                    this.characteristic = characteristic;
-                    break;
-                case "02345678-1234-5678-1234-56789ABCDEF1":
-                    this.characteristic2 = characteristic;
-                    break;
-                default:
-                    return;
+                this.characteristic_left_wheel = characteristic;
             }
+            else if (characteristic.Uuid == UUID_characteristic_right_wheel)
+            {
+                this.characteristic_right_wheel = characteristic;
+            }
+            else
+            {
+                return;
+            }
+            //switch (characteristic.Uuid)
+            //{
+            //    case UUID_characteristic_left_wheel:
+            //        this.characteristic_left_wheel = characteristic;
+            //        break;
+            //    case UUID_characteristic_right_wheel:
+            //        this.characteristic_right_wheel = characteristic;
+            //        break;
+            //    default:
+            //        return;
+            //}
             string uuid = characteristic.Uuid;
             string[] usage = characteristic.Propertis;
             Debug.Log("discover characteristic uuid: " + uuid + ", usage: " + usage);
@@ -89,13 +141,20 @@ public class SampleUser : MonoBehaviour
 
         manager.OnUpdateValue((CoreBluetoothCharacteristic characteristic, byte[] data) =>
         {
-            if (characteristic.Uuid == this.characteristic.Uuid)
+            if (this.characteristic_left_wheel != null && characteristic.Uuid == this.characteristic_left_wheel.Uuid)
             {
                 this.value_1 = data;
+                Debug.Log("Left cara notify");
+                this.last_sample_left_wheel = new WheelSample(data);
             }
-            else if (characteristic.Uuid == this.characteristic2.Uuid)
+            else if (this.characteristic_right_wheel != null && characteristic.Uuid == this.characteristic_right_wheel.Uuid)
             {
                 this.value_2 = data;
+                this.last_sample_right_wheel = new WheelSample(data);
+            }
+            else
+            {
+                return;
             }
             this.flag = true;
         });
@@ -105,47 +164,47 @@ public class SampleUser : MonoBehaviour
     private bool flag = false;
     private byte[] value = new byte[20];
 
-    private float vy = 0.0f;
+//    private float vy = 0.0f;
 
     // Update is called once per frame 
     void Update()
     {
-        if (this.transform.position.y < 0)
-        {
-            vy = 0.0f;
-            transform.position = new Vector3(0, 0, 0);
-        }
-        else
-        {
-            vy -= 0.006f;
-            transform.position += new Vector3(0, vy, 0);
-        }
-        this.transform.Rotate(2, -3, 4);
         if (flag == false) return;
         flag = false;
-        if (value_1.Length > 0)
+
+        if (this.last_sample_left_wheel != null)
         {
-            text.text = $"Notify: {BitConverter.ToInt32(value_1, 0)}";
+            wheel_left_text.text = $"Left: {this.last_sample_left_wheel.counter} / @{this.last_sample_left_wheel.timestamp}";
         }
-        if (value_2.Length > 0)
+        if (this.last_sample_right_wheel != null)
         {
-            text2.text = $"Notify: {BitConverter.ToInt32(value_2, 0)}";
+            wheel_right_text.text = $"Right: {this.last_sample_right_wheel.counter} / @{this.last_sample_right_wheel.timestamp}";
         }
-        vy += 0.1f;
-        transform.position += new Vector3(0, vy, 0);
+        //if (value_1 != null && value_1.Length >= 4)
+        //{
+        //    wheel_left_text.text = $"Left: {BitConverter.ToInt32(value_1, 0)}";
+        //}
+        //if (value_2 != null && value_2.Length >= 4)
+        //{
+        //    wheel_right_text.text = $"Right: {BitConverter.ToInt32(value_2, 0)}";
+        //}
+
     }
 
     void OnDestroy()
     {
-        manager.Stop();
+        if(manager != null)
+        {
+            manager.Stop();
+        }
     }
 
     private int counter = 0;
 
     public void Write()
     {
-        characteristic.Write(System.Text.Encoding.UTF8.GetBytes($"{counter}"));
-        counter++;
+        //characteristic.Write(System.Text.Encoding.UTF8.GetBytes($"{counter}"));
+        //counter++;
     }
 }
 #endif
