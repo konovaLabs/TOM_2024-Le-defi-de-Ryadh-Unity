@@ -20,17 +20,20 @@ public class CarControllerSimple : MonoBehaviour {
     float steer = 0.0f;
     float motor = 0.0f;
     float brake = 0.0f;
+
+    PlayerController _playerController;
     
 	// Use this for initialization
 	void Start () {
-	
+        _playerController = GetComponent<PlayerController>();
 	}
 	
 	// Update is called once per frame
 	void FixedUpdate() {
         steer = Mathf.Clamp(Input.GetAxis("Horizontal"), -1, 1);
         motor = Mathf.Clamp(Input.GetAxis("Vertical"), 0, 1);
-        brake = -1 * Mathf.Clamp(Input.GetAxis("Vertical"), -1, 0);
+
+        //brake = -1 * Mathf.Clamp(Input.GetAxis("Vertical"), -1, 0);
 
         wheelBackLeft.motorTorque = -1 * motorMax * motor;
         wheelBackRight.motorTorque = -1 * motorMax * motor;
@@ -41,4 +44,5 @@ public class CarControllerSimple : MonoBehaviour {
         wheelFrontRight.steerAngle = steerMax * steer;
 
 	}
+
 }

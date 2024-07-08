@@ -21,7 +21,7 @@ public class WheelSample
     }   
 }
 
-public class SampleUser : MonoBehaviour
+public class BleInterface : MonoBehaviour
 {
 
 
@@ -85,49 +85,50 @@ public class SampleUser : MonoBehaviour
         manager.OnDiscoverService((CoreBluetoothService service) =>
         {
             Debug.Log("discover service uuid: " + service.uuid + " / " + UUID_service_left_wheel);
-            if (service.uuid == UUID_service_left_wheel || service.uuid == UUID_service_right_wheel)
-            {
-                    service.discoverCharacteristics();
-
-            }
-            //switch (service.uuid)
+            //if (service.uuid == UUID_service_left_wheel || service.uuid == UUID_service_right_wheel)
             //{
-            //    case UUID_service_left_wheel:
-            //    case UUID_service_right_wheel:
-            //        break;
-            //    default:
-            //        Debug.Log("Return");
-            //        return;
+            //        service.discoverCharacteristics();
+
             //}
+            switch (service.uuid)
+            {
+                case UUID_service_left_wheel:
+                case UUID_service_right_wheel:
+                    service.discoverCharacteristics();
+                    break;
+                default:
+                    Debug.Log("Return");
+                    return;
+            }
         });
 
 
         manager.OnDiscoverCharacteristic((CoreBluetoothCharacteristic characteristic) =>
         {
             Debug.Log("OnDiscoverCharacteristic " + characteristic.Uuid);
-            if (characteristic.Uuid == UUID_characteristic_left_wheel)
-            {
-                this.characteristic_left_wheel = characteristic;
-            }
-            else if (characteristic.Uuid == UUID_characteristic_right_wheel)
-            {
-                this.characteristic_right_wheel = characteristic;
-            }
-            else
-            {
-                return;
-            }
-            //switch (characteristic.Uuid)
+            //if (characteristic.Uuid == UUID_characteristic_left_wheel)
             //{
-            //    case UUID_characteristic_left_wheel:
-            //        this.characteristic_left_wheel = characteristic;
-            //        break;
-            //    case UUID_characteristic_right_wheel:
-            //        this.characteristic_right_wheel = characteristic;
-            //        break;
-            //    default:
-            //        return;
+            //    this.characteristic_left_wheel = characteristic;
             //}
+            //else if (characteristic.Uuid == UUID_characteristic_right_wheel)
+            //{
+            //    this.characteristic_right_wheel = characteristic;
+            //}
+            //else
+            //{
+            //    return;
+            //}
+            switch (characteristic.Uuid)
+            {
+                case UUID_characteristic_left_wheel:
+                    this.characteristic_left_wheel = characteristic;
+                    break;
+                case UUID_characteristic_right_wheel:
+                    this.characteristic_right_wheel = characteristic;
+                    break;
+                default:
+                    return;
+            }
             string uuid = characteristic.Uuid;
             string[] usage = characteristic.Propertis;
             Debug.Log("discover characteristic uuid: " + uuid + ", usage: " + usage);
@@ -205,6 +206,16 @@ public class SampleUser : MonoBehaviour
     {
         //characteristic.Write(System.Text.Encoding.UTF8.GetBytes($"{counter}"));
         //counter++;
+    }
+
+    public WheelSample getLastWheelLeftEvent()
+    {
+        return this.last_sample_left_wheel;
+    }
+
+    public WheelSample getLastWheelRightEvent()
+    {
+        return this.last_sample_right_wheel;
     }
 }
 #endif
