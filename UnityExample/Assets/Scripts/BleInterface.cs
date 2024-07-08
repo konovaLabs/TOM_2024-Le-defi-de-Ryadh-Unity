@@ -145,7 +145,6 @@ public class BleInterface : MonoBehaviour
             if (this.characteristic_left_wheel != null && characteristic.Uuid == this.characteristic_left_wheel.Uuid)
             {
                 this.value_1 = data;
-                Debug.Log("Left cara notify");
                 this.last_sample_left_wheel = new WheelSample(data);
             }
             else if (this.characteristic_right_wheel != null && characteristic.Uuid == this.characteristic_right_wheel.Uuid)
@@ -198,6 +197,10 @@ public class BleInterface : MonoBehaviour
         {
             manager.Stop();
         }
+        characteristic_left_wheel = null;
+        characteristic_right_wheel = null;
+        last_sample_right_wheel = null;
+        last_sample_left_wheel = null;
     }
 
     private int counter = 0;
@@ -208,14 +211,24 @@ public class BleInterface : MonoBehaviour
         //counter++;
     }
 
-    public WheelSample getLastWheelLeftEvent()
+    public WheelSample GetLastWheelLeftEvent()
     {
         return this.last_sample_left_wheel;
     }
 
-    public WheelSample getLastWheelRightEvent()
+    public WheelSample GetLastWheelRightEvent()
     {
         return this.last_sample_right_wheel;
+    }
+
+    public bool IsLeftWheelConneted()
+    {
+        return (this.characteristic_left_wheel != null);
+    }
+
+    public bool IsRightWheelConnected()
+    {
+        return (this.characteristic_right_wheel != null);
     }
 }
 #endif
