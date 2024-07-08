@@ -106,8 +106,8 @@ public class PlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
-        computeStates();
-        updateMessage();
+        //computeStates();
+        //updateMessage();
         calculatePosition();
         calculateBreak();
 
@@ -211,6 +211,16 @@ public class PlayerController : MonoBehaviour
             /* Save as last received event */
             last_right_event = _right_event;
         }
+    }
+
+    public WheelSample GetLastSampleLeft()
+    {
+        return last_left_event;
+    }
+
+    public WheelSample GetLastSampleRight()
+    {
+        return last_right_event;
     }
 
 }

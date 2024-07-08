@@ -30,12 +30,17 @@ public class BleInterface : MonoBehaviour
 
     private CoreBluetoothManager manager;
     private CoreBluetoothCharacteristic characteristic_left_wheel = null;
+    private CoreBluetoothCharacteristic characteristic_left_led = null;
     private CoreBluetoothCharacteristic characteristic_right_wheel = null;
+    private CoreBluetoothCharacteristic characteristic_right_led = null;
 
     const string UUID_service_left_wheel = "02345678-1234-5678-1234-56789ABCDEF0";
     const string UUID_service_right_wheel = "12345678-1234-5678-1234-56789ABCDEF0";
     const string UUID_characteristic_left_wheel = "02345678-1234-5678-1234-56789ABCDEF1";
+    const string UUID_characteristic_left_led = "02345678-1234-5678-1234-56789ABCDEF2";
     const string UUID_characteristic_right_wheel = "12345678-1234-5678-1234-56789ABCDEF1";
+    const string UUID_characteristic_right_led = "12345678-1234-5678-1234-56789ABCDEF2";
+
     const string periph_name = "La Roue"; 
 
     byte[] value_1 = null;
@@ -126,6 +131,12 @@ public class BleInterface : MonoBehaviour
                 case UUID_characteristic_right_wheel:
                     this.characteristic_right_wheel = characteristic;
                     break;
+                case UUID_characteristic_left_led:
+                    this.characteristic_left_led = characteristic;
+                    break;
+                case UUID_characteristic_right_led:
+                    this.characteristic_right_led = characteristic;
+                    break;
                 default:
                     return;
             }
@@ -162,9 +173,6 @@ public class BleInterface : MonoBehaviour
     }
 
     private bool flag = false;
-    private byte[] value = new byte[20];
-
-//    private float vy = 0.0f;
 
     // Update is called once per frame 
     void Update()
@@ -180,15 +188,26 @@ public class BleInterface : MonoBehaviour
         {
             wheel_right_text.text = $"Right: {this.last_sample_right_wheel.counter} / @{this.last_sample_right_wheel.timestamp}";
         }
-        //if (value_1 != null && value_1.Length >= 4)
-        //{
-        //    wheel_left_text.text = $"Left: {BitConverter.ToInt32(value_1, 0)}";
-        //}
-        //if (value_2 != null && value_2.Length >= 4)
-        //{
-        //    wheel_right_text.text = $"Right: {BitConverter.ToInt32(value_2, 0)}";
-        //}
 
+    }
+
+    public void SetLeftLed(byte red, byte green, byte blue)
+    {
+        if(characteristic_left_led == null)
+        {
+            return;
+        }
+        characteristic_left_led.Write(new byte[] { red, green , blue});
+    }
+
+    public void SetRightLed(byte red, byte green, byte blue)
+    {
+        if (characteristic_right_led == null)
+        {
+            return;
+        }
+        Debug.Log("Set Right led " + characteristic_right_led.Uuid);
+        characteristic_right_led.Write(new byte[] { red, green, blue });
     }
 
     void OnDestroy()
@@ -199,6 +218,8 @@ public class BleInterface : MonoBehaviour
         }
         characteristic_left_wheel = null;
         characteristic_right_wheel = null;
+        characteristic_right_led = null;
+        characteristic_left_led = null;
         last_sample_right_wheel = null;
         last_sample_left_wheel = null;
     }
@@ -209,6 +230,9 @@ public class BleInterface : MonoBehaviour
     {
         //characteristic.Write(System.Text.Encoding.UTF8.GetBytes($"{counter}"));
         //counter++;
+        SetRightLed(0x00, 0xFF, 0x00);
+        //characteristic_right_led.Write(System.Text.Encoding.UTF8.GetBytes("ABCD"));
+        //characteristic_left_led.Write(System.Text.Encoding.UTF8.GetBytes("ABCD"));
     }
 
     public WheelSample GetLastWheelLeftEvent()
