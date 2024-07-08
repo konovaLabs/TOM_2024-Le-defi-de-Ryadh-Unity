@@ -8,11 +8,17 @@ public class SampleUser : MonoBehaviour
 {
 
     public Text text;
+    public Text text2;
 
     private CoreBluetoothManager manager;
     private CoreBluetoothCharacteristic characteristic;
+    private CoreBluetoothCharacteristic characteristic2;
 
-    // Use this for initialization
+
+    public String peripheral_name;
+
+    byte[] value_1, value_2;
+    // Use this for initialization 
     void Start()
     {
         manager = CoreBluetoothManager.Shared;
@@ -27,10 +33,12 @@ public class SampleUser : MonoBehaviour
         manager.OnDiscoverPeripheral((CoreBluetoothPeripheral peripheral) =>
         {
             if (peripheral.name != "")
-                Debug.Log("discover peripheral name: " + peripheral.name); 
-            if ((peripheral.name != "Daydream controller") && (peripheral.name != "M5Stack") && (peripheral.name != "M5StickC")) return;
-
-            manager.StopScan();
+                Debug.Log("discover peripheral name: " + peripheral.name + " / " + peripheral_name);
+            if (peripheral.name != "TOM HotWheel" && peripheral.name != "TOM HotWheel2")
+            {
+                return;
+            }
+            //manager.StopScan(); 
             manager.ConnectToPeripheral(peripheral);
         });
 
@@ -43,14 +51,31 @@ public class SampleUser : MonoBehaviour
         manager.OnDiscoverService((CoreBluetoothService service) =>
         {
             Debug.Log("discover service uuid: " + service.uuid);
-            if (service.uuid != "FE55") return;
-            service.discoverCharacteristics();
+            switch (service.uuid)
+            {
+                case "12345678-1234-5678-1234-56789ABCDEF0":
+                case "02345678-1234-5678-1234-56789ABCDEF0":
+                    service.discoverCharacteristics();
+                    break;
+                default:
+                    return;
+            }
         });
 
 
         manager.OnDiscoverCharacteristic((CoreBluetoothCharacteristic characteristic) =>
         {
-            this.characteristic = characteristic;
+            switch (characteristic.Uuid)
+            {
+                case "12345678-1234-5678-1234-56789ABCDEF1":
+                    this.characteristic = characteristic;
+                    break;
+                case "02345678-1234-5678-1234-56789ABCDEF1":
+                    this.characteristic2 = characteristic;
+                    break;
+                default:
+                    return;
+            }
             string uuid = characteristic.Uuid;
             string[] usage = characteristic.Propertis;
             Debug.Log("discover characteristic uuid: " + uuid + ", usage: " + usage);
@@ -64,7 +89,14 @@ public class SampleUser : MonoBehaviour
 
         manager.OnUpdateValue((CoreBluetoothCharacteristic characteristic, byte[] data) =>
         {
-            this.value = data;
+            if (characteristic.Uuid == this.characteristic.Uuid)
+            {
+                this.value_1 = data;
+            }
+            else if (characteristic.Uuid == this.characteristic2.Uuid)
+            {
+                this.value_2 = data;
+            }
             this.flag = true;
         });
         manager.Start();
@@ -75,7 +107,7 @@ public class SampleUser : MonoBehaviour
 
     private float vy = 0.0f;
 
-    // Update is called once per frame
+    // Update is called once per frame 
     void Update()
     {
         if (this.transform.position.y < 0)
@@ -91,7 +123,14 @@ public class SampleUser : MonoBehaviour
         this.transform.Rotate(2, -3, 4);
         if (flag == false) return;
         flag = false;
-        text.text = $"Notify: {BitConverter.ToInt32(value, 0)}";
+        if (value_1.Length > 0)
+        {
+            text.text = $"Notify: {BitConverter.ToInt32(value_1, 0)}";
+        }
+        if (value_2.Length > 0)
+        {
+            text2.text = $"Notify: {BitConverter.ToInt32(value_2, 0)}";
+        }
         vy += 0.1f;
         transform.position += new Vector3(0, vy, 0);
     }
