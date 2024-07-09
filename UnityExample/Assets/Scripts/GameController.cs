@@ -6,24 +6,28 @@ using UnityEngine.UI;
 
 public enum GameStates
 {
-    GameWaitBleConnection = 0,
-    GameWaitFirstMeasure = 1,
-    GameStart3 = 2,
-    GameStart2 = 3,
-    GameStart1 = 4,
-    GamePlaying1 = 5,
-    GamePlaying2 = 6,
-    GameStop = 7
+    GameInit = 0,
+    GameWaitBleConnection,
+    GameWaitFirstMeasure,
+    GameStart3,
+    GameStart2,
+    GameStart1,
+    GamePlaying1,
+    GamePlaying2,
+    GameStop,
+    GameStopWaiting
 };
 
 public class GameController : MonoBehaviour
 {
     public Text message_text;
 
-    GameStates _current_state;
+    GameStates _current_state = GameStates.GameInit;
+    GameStates _next_state = GameStates.GameInit;
 
     BleInterface _bleInterface = null;
     PlayerController _playerController = null;
+    Chrono _chrono = null;
 
     GameObject player = null;
 
@@ -35,15 +39,18 @@ public class GameController : MonoBehaviour
         player = GameObject.FindWithTag("Player");
         _bleInterface = player.GetComponent<BleInterface>();
         _playerController = player.GetComponent<PlayerController>();
+        _chrono = GetComponent<Chrono>();
 
-        _current_state = GameStates.GameWaitBleConnection;
+        _current_state = GameStates.GameInit;
+
     }
 
     // Update is called once per frame
     void FixedUpdate()
     {
-        computeStates();
         updateMessage();
+        computeStates();
+        GoToNextState();
     }
 
     void updateMessage()
@@ -51,6 +58,8 @@ public class GameController : MonoBehaviour
         string s = "";
         switch (_current_state)
         {
+            case GameStates.GameInit:
+                break;
             case GameStates.GameWaitBleConnection:
                 s = "Wait Bluetooth connection...\n";
                 s += "Wheel Left " + (_bleInterface.IsLeftWheelConneted() ? "Ready" : "Waiting") + "\n";
@@ -76,6 +85,15 @@ public class GameController : MonoBehaviour
             case GameStates.GamePlaying2:
                 break;
             case GameStates.GameStop:
+            case GameStates.GameStopWaiting:
+                float elapsed_time = _chrono.elapsed_time;
+                int minutes = Mathf.FloorToInt(elapsed_time / 60F);
+                int seconds = Mathf.FloorToInt(elapsed_time % 60F);
+                int milliseconds = Mathf.FloorToInt((elapsed_time * 1000F) % 1000F);
+                s = "FINISH !\n";
+                s += "Your time : ";
+                s += string.Format("{0:00}:{1:00}:{2:000}", minutes, seconds, milliseconds);
+                Debug.Log(s);
                 break;
         }
         SetMessageText(s);
@@ -90,12 +108,15 @@ public class GameController : MonoBehaviour
     {
         switch (_current_state)
         {
+            case GameStates.GameInit:
+                _next_state = GameStates.GameWaitBleConnection;
+                break;
             case GameStates.GameWaitBleConnection:
                 if (_bleInterface.IsLeftWheelConneted() && _bleInterface.IsRightWheelConnected() && Time.frameCount > 100)
                 {
                     _bleInterface.SetRightLed(0x00, 0x00, 0x00);
                     _bleInterface.SetLeftLed(0x00, 0x00, 0x00);
-                    _current_state = GameStates.GameWaitFirstMeasure;
+                    _next_state = GameStates.GameWaitFirstMeasure;
                 }
                 break;
             case GameStates.GameWaitFirstMeasure:
@@ -105,7 +126,7 @@ public class GameController : MonoBehaviour
                     //_bleInterface.SetRightLed(0xFF, 0x00, 0x00);
                     //_bleInterface.SetLeftLed(0xFF, 0x00, 0x00);
 
-                    _current_state = GameStates.GameStart3;
+                    _next_state = GameStates.GameStart3;
                 }
                 break;
             case GameStates.GameStart3:
@@ -116,7 +137,7 @@ public class GameController : MonoBehaviour
                     _bleInterface.SetRightLed(0xFF, 0x00, 0x00);
                     _bleInterface.SetLeftLed(0xFF, 0x00, 0x00);
 
-                    _current_state = GameStates.GameStart2;
+                    _next_state = GameStates.GameStart2;
 
                 }
                 break;
@@ -128,7 +149,7 @@ public class GameController : MonoBehaviour
                     _bleInterface.SetRightLed(0xFF, 90, 0x00);
                     _bleInterface.SetLeftLed(0xFF, 90, 0x00);
 
-                    _current_state = GameStates.GameStart1;
+                    _next_state = GameStates.GameStart1;
 
                 }
                 break;
@@ -141,7 +162,9 @@ public class GameController : MonoBehaviour
                     _bleInterface.SetLeftLed(0x00, 0xFF, 0x00);
 
                     _playerController.can_move = true;
-                    _current_state = GameStates.GamePlaying1;
+                    _next_state = GameStates.GamePlaying1;
+                    _chrono.SetVisible(true);
+                    _chrono.StartChrono();
 
                 }
 
@@ -155,15 +178,31 @@ public class GameController : MonoBehaviour
                     _bleInterface.SetRightLed(0x00, 0x00, 0x00);
                     _bleInterface.SetLeftLed(0x00, 0x00, 0x00);
 
-                    _current_state = GameStates.GamePlaying2;
+                    _next_state = GameStates.GamePlaying2;
                 }
                 break;
             case GameStates.GamePlaying2:
                 break;
             case GameStates.GameStop:
                 _playerController.can_move = false;
+                _chrono.StopChrono();
+                _next_state = GameStates.GameStopWaiting;
+                break;
+            case GameStates.GameStopWaiting:
                 break;
         }
     }
 
+    public void EndCallback()
+    {
+        _next_state = GameStates.GameStop;
+    }
+
+    void GoToNextState()
+    {
+        if(_next_state != _current_state)
+        {
+            _current_state = _next_state;
+        }
+    }
 }

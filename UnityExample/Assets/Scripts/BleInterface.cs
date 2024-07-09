@@ -72,7 +72,7 @@ public class BleInterface : MonoBehaviour
             {
                 return;
             }
-            Debug.Log("Scan to peripheral name: " + peripheral.name);
+            //Debug.Log("Scan to peripheral name: " + peripheral.name);
             //manager.StopScan(); 
             manager.ConnectToPeripheral(peripheral);
             //if(characteristic != null && characteristic2 != null)
@@ -83,13 +83,13 @@ public class BleInterface : MonoBehaviour
 
         manager.OnConnectPeripheral((CoreBluetoothPeripheral peripheral) =>
         {
-            Debug.Log("connected peripheral name: " + peripheral.name);
+            //Debug.Log("connected peripheral name: " + peripheral.name);
             peripheral.discoverServices();
         });
 
         manager.OnDiscoverService((CoreBluetoothService service) =>
         {
-            Debug.Log("discover service uuid: " + service.uuid + " / " + UUID_service_left_wheel);
+            //Debug.Log("discover service uuid: " + service.uuid + " / " + UUID_service_left_wheel);
             //if (service.uuid == UUID_service_left_wheel || service.uuid == UUID_service_right_wheel)
             //{
             //        service.discoverCharacteristics();
@@ -102,7 +102,7 @@ public class BleInterface : MonoBehaviour
                     service.discoverCharacteristics();
                     break;
                 default:
-                    Debug.Log("Return");
+                    //Debug.Log("Return");
                     return;
             }
         });
@@ -110,7 +110,7 @@ public class BleInterface : MonoBehaviour
 
         manager.OnDiscoverCharacteristic((CoreBluetoothCharacteristic characteristic) =>
         {
-            Debug.Log("OnDiscoverCharacteristic " + characteristic.Uuid);
+            //Debug.Log("OnDiscoverCharacteristic " + characteristic.Uuid);
             //if (characteristic.Uuid == UUID_characteristic_left_wheel)
             //{
             //    this.characteristic_left_wheel = characteristic;
@@ -142,10 +142,10 @@ public class BleInterface : MonoBehaviour
             }
             string uuid = characteristic.Uuid;
             string[] usage = characteristic.Propertis;
-            Debug.Log("discover characteristic uuid: " + uuid + ", usage: " + usage);
+            //Debug.Log("discover characteristic uuid: " + uuid + ", usage: " + usage);
             for (int i = 0; i < usage.Length; i++)
             {
-                Debug.Log("discover characteristic uuid: " + uuid + ", usage: " + usage[i]);
+                //Debug.Log("discover characteristic uuid: " + uuid + ", usage: " + usage[i]);
                 if (usage[i] == "notify")
                     characteristic.SetNotifyValue(true);
             }
@@ -206,7 +206,7 @@ public class BleInterface : MonoBehaviour
         {
             return;
         }
-        Debug.Log("Set Right led " + characteristic_right_led.Uuid);
+        //Debug.Log("Set Right led " + characteristic_right_led.Uuid);
         characteristic_right_led.Write(new byte[] { red, green, blue });
     }
 

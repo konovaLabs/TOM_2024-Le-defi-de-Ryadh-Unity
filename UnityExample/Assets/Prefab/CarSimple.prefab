@@ -95,7 +95,7 @@ GameObject:
   - component: {fileID: 14600000}
   m_Layer: 0
   m_Name: ColBackRight
-  m_TagString: Untagged
+  m_TagString: Wheels
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -166,7 +166,7 @@ GameObject:
   - component: {fileID: 14600002}
   m_Layer: 0
   m_Name: ColBackLeft
-  m_TagString: Untagged
+  m_TagString: Wheels
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -237,7 +237,7 @@ GameObject:
   - component: {fileID: 14600004}
   m_Layer: 0
   m_Name: ColFrontLeft
-  m_TagString: Untagged
+  m_TagString: Wheels
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -308,7 +308,7 @@ GameObject:
   - component: {fileID: 14600006}
   m_Layer: 0
   m_Name: ColFrontRight
-  m_TagString: Untagged
+  m_TagString: Wheels
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -378,9 +378,11 @@ GameObject:
   - component: {fileID: 400010}
   - component: {fileID: 5400000}
   - component: {fileID: 11463884}
+  - component: {fileID: 6618263725053214580}
+  - component: {fileID: 5634546368802401980}
   m_Layer: 0
   m_Name: CarSimple
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -393,15 +395,15 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 100010}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 1, z: 0, w: -0.00000004371139}
-  m_LocalPosition: {x: 0.08, y: 0.032, z: -1.77}
+  m_LocalRotation: {x: 0, y: -1, z: 0, w: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 400022}
   - {fileID: 400018}
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: -180, z: 0}
 --- !u!54 &5400000
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -436,7 +438,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 100010}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 98e0e971d5b484ac9b15ef60f1a08418, type: 3}
   m_Name: 
@@ -448,6 +450,44 @@ MonoBehaviour:
   steerMax: 30
   motorMax: 200
   brakeMax: 800
+--- !u!114 &6618263725053214580
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 100010}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5125d1b3dc0540fc96d23217863529e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  wheel_left_text: {fileID: 0}
+  wheel_right_text: {fileID: 0}
+--- !u!114 &5634546368802401980
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 100010}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b625a951bff6a43f19fdd1bf29a7674a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  speed_left_text: {fileID: 0}
+  speed_right_text: {fileID: 0}
+  message_text: {fileID: 0}
+  _current_speed_left: 0
+  _current_speed_right: 0
+  wheel_diameter_mm: 50
+  brake_coef: 0.1
+  distance_wheel_m: 0.8
+  can_move: 0
+  v: 0
+  omega: 0
+  theta: 0
 --- !u!1 &100012
 GameObject:
   m_ObjectHideFlags: 0
@@ -545,7 +585,7 @@ GameObject:
   - component: {fileID: 6500000}
   m_Layer: 0
   m_Name: Cube
-  m_TagString: Untagged
+  m_TagString: Wheels
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -730,7 +770,7 @@ GameObject:
   - component: {fileID: 400018}
   m_Layer: 0
   m_Name: Colliders
-  m_TagString: Untagged
+  m_TagString: Wheels
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

@@ -125,7 +125,7 @@ public class PlayerController : MonoBehaviour
             // Mettre à jour la rotation du prefab
             transform.Rotate(Vector3.up, omega * elapsedTime * Mathf.Rad2Deg);
         }
-        }
+    }
 
     // Update is called once per frame
     void Update()
@@ -186,7 +186,13 @@ public class PlayerController : MonoBehaviour
         {
             if (last_left_event != null)
             {
-                int delta_t = _left_event.timestamp - last_left_event.timestamp;
+                int delta_t;
+                if (_left_event.timestamp > last_left_event.timestamp) {
+                    delta_t = _left_event.timestamp - last_left_event.timestamp;
+                } else
+                {
+                    delta_t = short.MaxValue - last_left_event.timestamp + (_left_event.timestamp - short.MinValue);
+                }
                 int delta_counter = _left_event.counter - last_left_event.counter;
 
                 speed_left = 3.6f * delta_counter * wheel_diameter_mm * Mathf.PI / delta_t;
@@ -201,7 +207,15 @@ public class PlayerController : MonoBehaviour
         {
             if (last_right_event != null)
             {
-                int delta_t = _right_event.timestamp - last_right_event.timestamp;
+                int delta_t;
+                if (_right_event.timestamp > last_right_event.timestamp)
+                {
+                    delta_t = _right_event.timestamp - last_right_event.timestamp;
+                }
+                else
+                {
+                    delta_t = short.MaxValue - last_right_event.timestamp + (_right_event.timestamp - short.MinValue);
+                }
                 int delta_counter = _right_event.counter - last_right_event.counter;
 
                 speed_right = 3.6f * delta_counter * wheel_diameter_mm * Mathf.PI / delta_t;
