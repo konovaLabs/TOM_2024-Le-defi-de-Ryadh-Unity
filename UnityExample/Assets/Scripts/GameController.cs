@@ -21,9 +21,11 @@ public enum GameStates
 public class GameController : MonoBehaviour
 {
     public Text message_text;
+    public Text checkpoint_text;
 
     public GameStates _current_state = GameStates.GameInit;
     public GameStates _next_state = GameStates.GameInit;
+    public List<GameObject> checkpoint_list;
 
     BleInterface _bleInterface = null;
     PlayerController _playerController = null;
@@ -32,6 +34,7 @@ public class GameController : MonoBehaviour
     GameObject player = null;
 
     GameObject lastCheckpoint = null;
+    int numberCheckpointDone = 0;
 
 
     bool needRespawn = false;
@@ -45,6 +48,7 @@ public class GameController : MonoBehaviour
         _bleInterface = player.GetComponent<BleInterface>();
         _playerController = player.GetComponent<PlayerController>();
         _chrono = GetComponent<Chrono>();
+        checkpoint_text.enabled = false;
 
         _current_state = GameStates.GameInit;
 
@@ -54,6 +58,7 @@ public class GameController : MonoBehaviour
     void Update()
     {
         updateMessage();
+        UpdateCheckpointCounter();
         computeStates();
         GoToNextState();
     }
@@ -108,11 +113,17 @@ public class GameController : MonoBehaviour
         message_text.text = s;
     }
 
+    void UpdateCheckpointCounter()
+    {
+        checkpoint_text.text = $"{numberCheckpointDone} / {checkpoint_list.Count}";
+    }
+
     void computeStates()
     {
         switch (_current_state)
         {
             case GameStates.GameInit:
+
                 _next_state = GameStates.GameWaitBleConnection;
                 break;
             case GameStates.GameWaitBleConnection:
@@ -165,6 +176,7 @@ public class GameController : MonoBehaviour
                     _bleInterface.SetRightLed(0x00, 0xFF, 0x00);
                     _bleInterface.SetLeftLed(0x00, 0xFF, 0x00);
 
+                    checkpoint_text.enabled = true;
                     _playerController.can_move = true;
                     _next_state = GameStates.GamePlaying1;
                     _chrono.SetVisible(true);
@@ -191,12 +203,27 @@ public class GameController : MonoBehaviour
                 break;
             case GameStates.GameStop:
                 _playerController.can_move = false;
+                checkpoint_text.enabled = false;
                 _chrono.StopChrono();
+                _bleInterface.PlayLedSequence(LedSequence.LED_FINISH);
                 _next_state = GameStates.GameStopWaiting;
                 break;
             case GameStates.GameStopWaiting:
                 break;
         }
+    }
+
+    int GetCountCheckpointDone()
+    {
+        int count = 0;
+        foreach (GameObject obj in checkpoint_list)
+        {
+            if(obj.GetComponent<CheckpointController>().IsCheckpointTriggered())
+            {
+                count++;
+            }
+        }
+        return count;
     }
 
     void CheckRespawn()
@@ -211,19 +238,28 @@ public class GameController : MonoBehaviour
                 player.transform.Rotate(Vector3.up, 180);
                 player.transform.position = lastCheckpoint.transform.position;
                 player.GetComponent<PlayerController>().ResetSpeed();
+                _bleInterface.PlayLedSequence(LedSequence.LED_RESPAWN);
             }
         }
     }
 
-    public void EndCallback()
+    public bool EndCallback()
     {
+        if(GetCountCheckpointDone() != checkpoint_list.Count)
+        {
+            return false;
+        }
+
         _next_state = GameStates.GameStop;
+        return true;
     }
 
     public void NotifyCheckpoint(int id, GameObject obj)
     {
         Debug.Log("Entry checkpoint " + id);
         lastCheckpoint = obj;
+        numberCheckpointDone = GetCountCheckpointDone();
+        _bleInterface.PlayLedSequence(LedSequence.LED_CHECKPOINT);
     }
 
     void GoToNextState()

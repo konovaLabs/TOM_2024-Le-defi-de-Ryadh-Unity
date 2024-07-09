@@ -21,24 +21,20 @@ public class EndController : MonoBehaviour
         
     }
 
-    void NotifyEnd()
+    bool NotifyEnd()
     {
         Debug.Log("Notify End");
-        _gameControllerObj.GetComponent<GameController>().EndCallback();
+        return _gameControllerObj.GetComponent<GameController>().EndCallback();
     }
 
     void OnTriggerEnter(Collider other)
     {
-        // Vérifier si l'objet entrant a le tag "Player"
-        Debug.Log("Collider" + other.tag);
         if (other.CompareTag("Wheels"))
         {
-            if (colliderComponent != null)
+            if(NotifyEnd())
             {
                 colliderComponent.enabled = false;
             }
-            Debug.Log("Player entered the trigger zone!");
-            NotifyEnd();
             // Ajoutez ici le code pour ce qui doit se passer lorsque le joueur entre dans le trigger
         }
     }

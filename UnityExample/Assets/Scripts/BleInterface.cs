@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Collections;
 #if UNITY_EDITOR_OSX || UNITY_IOS
 using UnityCoreBluetooth;
 
@@ -20,6 +21,13 @@ public class WheelSample
         this.timestamp = BitConverter.ToInt16(data, 5);
     }   
 }
+
+public enum LedSequence
+{
+    LED_CHECKPOINT = 0,
+    LED_RESPAWN,
+    LED_FINISH,
+};
 
 public class BleInterface : MonoBehaviour
 {
@@ -253,6 +261,46 @@ public class BleInterface : MonoBehaviour
     public bool IsRightWheelConnected()
     {
         return (this.characteristic_right_wheel != null);
+    }
+
+    public void PlayLedSequence(LedSequence seq)
+    {
+        SetLeftLed(0, 0, 0);
+        SetRightLed(0, 0, 0);
+        StartCoroutine(LedSequence(seq)); 
+    }
+
+    IEnumerator LedSequence(LedSequence seq)
+    {
+        switch(seq)
+        {
+            case global::LedSequence.LED_CHECKPOINT:
+                SetLeftLed(0, 0xFF, 0);
+                SetRightLed(0, 0xFF, 0);
+                yield return new WaitForSeconds(0.2f);
+                SetLeftLed(0, 0, 0);
+                SetRightLed(0, 0, 0);
+                break;
+            case global::LedSequence.LED_FINISH:
+                for (int i = 0; i < 5; i++) //
+                {
+                    SetLeftLed(0, 0xFF, 0);
+                    SetRightLed(0, 0xFF, 0);
+                    yield return new WaitForSeconds(0.2f);
+                    SetLeftLed(0, 0, 0);
+                    SetRightLed(0, 0, 0);
+                    yield return new WaitForSeconds(0.2f);
+                }
+
+                break;
+            case global::LedSequence.LED_RESPAWN:
+                SetLeftLed(0xFF, 0x00, 0);
+                SetRightLed(0xFF, 0x00, 0);
+                yield return new WaitForSeconds(0.2f);
+                SetLeftLed(0, 0, 0);
+                SetRightLed(0, 0, 0);
+                break;
+        }
     }
 }
 #endif

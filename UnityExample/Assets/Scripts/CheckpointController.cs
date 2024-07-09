@@ -43,4 +43,9 @@ public class CheckpointController : MonoBehaviour
             NotifyCheckpointEntry();
         }
     }
+
+    public bool IsCheckpointTriggered()
+    {
+        return !colliderComponent.enabled;
+    }
 }
