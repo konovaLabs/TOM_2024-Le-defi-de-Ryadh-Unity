@@ -27,6 +27,8 @@ public class GameController : MonoBehaviour
     public GameStates _current_state = GameStates.GameInit;
     public GameStates _next_state = GameStates.GameInit;
     public List<GameObject> checkpoint_list;
+    public GameObject _message_block;
+    public GameObject _lap_block;
 
     BleInterface _bleInterface = null;
     PlayerController _playerController = null;
@@ -50,6 +52,9 @@ public class GameController : MonoBehaviour
         _playerController = player.GetComponent<PlayerController>();
         _chrono = GetComponent<Chrono>();
         checkpoint_text.enabled = false;
+        _message_block = GameObject.Find("message_block");
+        _lap_block = GameObject.Find("lap_block");
+        _lap_block.SetActive(false);
 
         _current_state = GameStates.GameInit;
 
@@ -108,6 +113,14 @@ public class GameController : MonoBehaviour
                 s += "Your time : ";
                 s += string.Format("{0:00}:{1:00}:{2:000}", minutes, seconds, milliseconds);
                 break;
+        }
+        if(s.Length > 0)
+        {
+            _message_block.SetActive(true);
+        }
+        else
+        {
+            _message_block.SetActive(false);
         }
         SetMessageText(s);
     }
@@ -188,6 +201,7 @@ public class GameController : MonoBehaviour
                     _bleInterface.SetRightLed(0x00, 0xFF, 0x00);
                     _bleInterface.SetLeftLed(0x00, 0xFF, 0x00);
 
+                    _lap_block.SetActive(true);
                     checkpoint_text.enabled = true;
                     _playerController.ResetSpeed();
                     _playerController.can_move = true;
@@ -217,6 +231,7 @@ public class GameController : MonoBehaviour
             case GameStates.GameStop:
                 _playerController.can_move = false;
                 checkpoint_text.enabled = false;
+                _lap_block.SetActive(false);
                 _chrono.StopChrono();
                 _bleInterface.PlayLedSequence(LedSequence.LED_FINISH);
                 _next_state = GameStates.GameStopWaiting;

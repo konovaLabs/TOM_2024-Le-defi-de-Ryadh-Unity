@@ -21,6 +21,7 @@ public class PlayerController : MonoBehaviour
     public Text speed_left_text;
     public Text speed_right_text;
     public Text distance_text;
+    public Text speed_text;
 
     public Text message_text;
 
@@ -39,6 +40,10 @@ public class PlayerController : MonoBehaviour
     public float v, omega, theta;
     public float coef_test = 5.0f;
 
+
+    public float last_distance = 0.0f;
+    public float last_speed_calculation = 0.0f;
+    public float speed_average = 0.0f;
     // Start is called before the first frame update
     void Start()
     {
@@ -115,15 +120,25 @@ public class PlayerController : MonoBehaviour
       
     }
 
+    void CalculateAverageSpeed()
+    {
+        if(Time.time - last_speed_calculation >= 1.0f)
+        {
+            speed_average = (cumulative_distance - last_distance) * 3.6f;
+            last_distance = cumulative_distance;
+            last_speed_calculation = Time.time;
+        }
+    }
 
     // Update is called once per frame
     void Update()
     {
         calculatePosition();
+        CalculateAverageSpeed();
         speed_left_text.text = $"Speed L: {this._current_speed_left}";
         speed_right_text.text = $"Speed R: {this._current_speed_right}";
         distance_text.text = $"Dist: {this.cumulative_distance} m";
-
+        speed_text.text = $"Speed: "+ this.speed_average.ToString("F2") +" km/h";
         if (can_move)
         {
             // Calcul du temps écoulé depuis la dernière frame de physique
@@ -139,8 +154,9 @@ public class PlayerController : MonoBehaviour
             cumulative_distance += v;
 
             // Mettre à jour la rotation du prefab
-            transform.Rotate(Vector3.up, omega * elapsedTime * Mathf.Rad2Deg);
+            transform.Rotate(Vector3.up, omega * Mathf.Rad2Deg);
         }
+
         //calculateBreak();
     }
 
