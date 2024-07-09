@@ -27,6 +27,8 @@ public enum LedSequence
     LED_CHECKPOINT = 0,
     LED_RESPAWN,
     LED_FINISH,
+    LED_CONNECTED_LEFT,
+    LED_CONNECTED_RIGHT
 };
 
 public class BleInterface : MonoBehaviour
@@ -141,9 +143,11 @@ public class BleInterface : MonoBehaviour
                     break;
                 case UUID_characteristic_left_led:
                     this.characteristic_left_led = characteristic;
+                    PlayLedSequence(global::LedSequence.LED_CONNECTED_LEFT);
                     break;
                 case UUID_characteristic_right_led:
                     this.characteristic_right_led = characteristic;
+                    PlayLedSequence(global::LedSequence.LED_CONNECTED_RIGHT);
                     break;
                 default:
                     return;
@@ -265,8 +269,6 @@ public class BleInterface : MonoBehaviour
 
     public void PlayLedSequence(LedSequence seq)
     {
-        SetLeftLed(0, 0, 0);
-        SetRightLed(0, 0, 0);
         StartCoroutine(LedSequence(seq)); 
     }
 
@@ -298,6 +300,16 @@ public class BleInterface : MonoBehaviour
                 SetRightLed(0xFF, 0x00, 0);
                 yield return new WaitForSeconds(0.2f);
                 SetLeftLed(0, 0, 0);
+                SetRightLed(0, 0, 0);
+                break;
+            case global::LedSequence.LED_CONNECTED_LEFT:
+                SetLeftLed(0x00, 0x00, 0xFF);
+                yield return new WaitForSeconds(0.2f);
+                SetLeftLed(0, 0, 0);
+                break;
+            case global::LedSequence.LED_CONNECTED_RIGHT:
+                SetRightLed(0x00, 0x00, 0xFF);
+                yield return new WaitForSeconds(0.2f);
                 SetRightLed(0, 0, 0);
                 break;
         }

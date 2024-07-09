@@ -9,6 +9,7 @@ public enum GameStates
     GameInit = 0,
     GameWaitBleConnection,
     GameWaitFirstMeasure,
+    GameWaitStart,
     GameStart3,
     GameStart2,
     GameStart1,
@@ -80,6 +81,9 @@ public class GameController : MonoBehaviour
                 s += "Wheel Left " + (_playerController.GetLastSampleLeft() != null ? "Ready" : "Waiting") + "\n";
                 s += "Wheel Right " + (_playerController.GetLastSampleRight() != null ? "Ready" : "Waiting");
                 break;
+            case GameStates.GameWaitStart:
+                s = "Be ready...";
+                break;
             case GameStates.GameStart3:
                 s = "3";
                 break;
@@ -123,14 +127,13 @@ public class GameController : MonoBehaviour
         switch (_current_state)
         {
             case GameStates.GameInit:
-
+                _bleInterface.SetRightLed(0x00, 0x00, 0x00);
+                _bleInterface.SetLeftLed(0x00, 0x00, 0x00);
                 _next_state = GameStates.GameWaitBleConnection;
                 break;
             case GameStates.GameWaitBleConnection:
                 if (_bleInterface.IsLeftWheelConneted() && _bleInterface.IsRightWheelConnected() && Time.frameCount > 100)
                 {
-                    _bleInterface.SetRightLed(0x00, 0x00, 0x00);
-                    _bleInterface.SetLeftLed(0x00, 0x00, 0x00);
                     _next_state = GameStates.GameWaitFirstMeasure;
                 }
                 break;
@@ -141,7 +144,16 @@ public class GameController : MonoBehaviour
                     //_bleInterface.SetRightLed(0xFF, 0x00, 0x00);
                     //_bleInterface.SetLeftLed(0xFF, 0x00, 0x00);
 
+                    _next_state = GameStates.GameWaitStart;
+                }
+                break;
+            case GameStates.GameWaitStart:
+                if (Time.time - currentTimestamp >= 3.0)
+                {
+                    currentTimestamp = Time.time;
+
                     _next_state = GameStates.GameStart3;
+
                 }
                 break;
             case GameStates.GameStart3:
