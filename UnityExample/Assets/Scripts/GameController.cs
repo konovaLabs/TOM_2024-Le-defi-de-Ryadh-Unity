@@ -189,6 +189,7 @@ public class GameController : MonoBehaviour
                     _bleInterface.SetLeftLed(0x00, 0xFF, 0x00);
 
                     checkpoint_text.enabled = true;
+                    _playerController.ResetSpeed();
                     _playerController.can_move = true;
                     _next_state = GameStates.GamePlaying1;
                     _chrono.SetVisible(true);

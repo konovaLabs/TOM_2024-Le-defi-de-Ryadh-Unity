@@ -99,7 +99,7 @@ public class BleInterface : MonoBehaviour
 
         manager.OnDiscoverService((CoreBluetoothService service) =>
         {
-            //Debug.Log("discover service uuid: " + service.uuid + " / " + UUID_service_left_wheel);
+            Debug.Log("discover service uuid: " + service.uuid + " / " + UUID_service_left_wheel);
             //if (service.uuid == UUID_service_left_wheel || service.uuid == UUID_service_right_wheel)
             //{
             //        service.discoverCharacteristics();
@@ -120,7 +120,7 @@ public class BleInterface : MonoBehaviour
 
         manager.OnDiscoverCharacteristic((CoreBluetoothCharacteristic characteristic) =>
         {
-            //Debug.Log("OnDiscoverCharacteristic " + characteristic.Uuid);
+            Debug.Log("OnDiscoverCharacteristic " + characteristic.Uuid);
             //if (characteristic.Uuid == UUID_characteristic_left_wheel)
             //{
             //    this.characteristic_left_wheel = characteristic;

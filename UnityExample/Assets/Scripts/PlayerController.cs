@@ -20,6 +20,7 @@ public class PlayerController : MonoBehaviour
 
     public Text speed_left_text;
     public Text speed_right_text;
+    public Text distance_text;
 
     public Text message_text;
 
@@ -32,7 +33,7 @@ public class PlayerController : MonoBehaviour
     public float brake_coef = 0.1f;
     public float distance_wheel_m = 0.80f;
     public bool can_move = false;
-
+    public float cumulative_distance = 0.0f;
     public float v, omega, theta;
 
     // Start is called before the first frame update
@@ -108,31 +109,34 @@ public class PlayerController : MonoBehaviour
     {
         //computeStates();
         //updateMessage();
-        calculatePosition();
-        calculateBreak();
-
-        if(can_move)
-        {
-            // Calcul du temps écoulé depuis la dernière frame de physique
-            float elapsedTime = Time.fixedDeltaTime;
-
-            // Calcul des nouvelles vitesses et angle
-            (v, omega, theta) = CalculateVelocityAndAngle(_current_speed_left, _current_speed_right, distance_wheel_m, elapsedTime);
-
-            // Mettre à jour la position du prefab
-            transform.Translate(Vector3.back * v * elapsedTime);
-
-            // Mettre à jour la rotation du prefab
-            transform.Rotate(Vector3.up, omega * elapsedTime * Mathf.Rad2Deg);
-        }
+      
     }
 
 
     // Update is called once per frame
     void Update()
     {
+        calculatePosition();
+        calculateBreak();
         speed_left_text.text = $"Speed L: {this._current_speed_left}";
         speed_right_text.text = $"Speed R: {this._current_speed_right}";
+        distance_text.text = $"Dist: {this.cumulative_distance} m";
+
+        if (can_move)
+        {
+            // Calcul du temps écoulé depuis la dernière frame de physique
+            float elapsedTime = Time.deltaTime;
+
+            // Calcul des nouvelles vitesses et angle
+            (v, omega, theta) = CalculateVelocityAndAngle(_current_speed_left, _current_speed_right, distance_wheel_m, elapsedTime);
+
+            // Mettre à jour la position du prefab
+            transform.Translate(Vector3.back * v * elapsedTime);
+            cumulative_distance += v * elapsedTime;
+
+            // Mettre à jour la rotation du prefab
+            transform.Rotate(Vector3.up, omega * elapsedTime * Mathf.Rad2Deg);
+        }
     }
 
     (float, float, float) CalculateVelocityAndAngle(float v_l, float v_r, float d, float t)
