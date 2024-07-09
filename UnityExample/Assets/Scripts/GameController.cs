@@ -22,14 +22,19 @@ public class GameController : MonoBehaviour
 {
     public Text message_text;
 
-    GameStates _current_state = GameStates.GameInit;
-    GameStates _next_state = GameStates.GameInit;
+    public GameStates _current_state = GameStates.GameInit;
+    public GameStates _next_state = GameStates.GameInit;
 
     BleInterface _bleInterface = null;
     PlayerController _playerController = null;
     Chrono _chrono = null;
 
     GameObject player = null;
+
+    GameObject lastCheckpoint = null;
+
+
+    bool needRespawn = false;
 
     float currentTimestamp;
 
@@ -46,7 +51,7 @@ public class GameController : MonoBehaviour
     }
 
     // Update is called once per frame
-    void FixedUpdate()
+    void Update()
     {
         updateMessage();
         computeStates();
@@ -93,7 +98,6 @@ public class GameController : MonoBehaviour
                 s = "FINISH !\n";
                 s += "Your time : ";
                 s += string.Format("{0:00}:{1:00}:{2:000}", minutes, seconds, milliseconds);
-                Debug.Log(s);
                 break;
         }
         SetMessageText(s);
@@ -171,7 +175,8 @@ public class GameController : MonoBehaviour
                 break;
 
             case GameStates.GamePlaying1:
-                if(Time.time - currentTimestamp >= 1.0)
+                CheckRespawn();
+                if (Time.time - currentTimestamp >= 1.0)
                 {
                     currentTimestamp = Time.time;
 
@@ -182,6 +187,7 @@ public class GameController : MonoBehaviour
                 }
                 break;
             case GameStates.GamePlaying2:
+                CheckRespawn();
                 break;
             case GameStates.GameStop:
                 _playerController.can_move = false;
@@ -193,9 +199,31 @@ public class GameController : MonoBehaviour
         }
     }
 
+    void CheckRespawn()
+    {
+        if (needRespawn || Input.GetKeyDown(KeyCode.Space))
+        {
+            if (lastCheckpoint != null)
+            {
+                Debug.Log("RESPAWNNNN");
+                needRespawn = false;
+                player.transform.rotation = lastCheckpoint.transform.rotation;
+                player.transform.Rotate(Vector3.up, 180);
+                player.transform.position = lastCheckpoint.transform.position;
+                player.GetComponent<PlayerController>().ResetSpeed();
+            }
+        }
+    }
+
     public void EndCallback()
     {
         _next_state = GameStates.GameStop;
+    }
+
+    public void NotifyCheckpoint(int id, GameObject obj)
+    {
+        Debug.Log("Entry checkpoint " + id);
+        lastCheckpoint = obj;
     }
 
     void GoToNextState()
@@ -204,5 +232,10 @@ public class GameController : MonoBehaviour
         {
             _current_state = _next_state;
         }
+    }
+
+    public void NotifyOufOfRoad()
+    {
+        needRespawn = true;
     }
 }

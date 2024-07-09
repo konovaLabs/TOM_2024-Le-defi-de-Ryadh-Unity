@@ -127,6 +127,7 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+
     // Update is called once per frame
     void Update()
     {
@@ -163,6 +164,12 @@ public class PlayerController : MonoBehaviour
         {
             _current_speed_right = 0.0f;
         }
+    }
+
+    public void ResetSpeed()
+    {
+        _current_speed_left = 0.0f;
+        _current_speed_right = 0.0f;
     }
 
     void calculatePosition()
