@@ -26,15 +26,18 @@ public class PlayerController : MonoBehaviour
 
     public float _current_speed_left = 0.0f;
     public float _current_speed_right = 0.0f;
+    public float delta_counter_left = 0.0f;
+    public float delta_counter_right = 0.0f;
 
     PlayerStates _current_state;
 
-    public float wheel_diameter_mm = 50.0f;
+    public float wheel_diameter_m = 0.030f;
     public float brake_coef = 0.1f;
     public float distance_wheel_m = 0.80f;
     public bool can_move = false;
     public float cumulative_distance = 0.0f;
     public float v, omega, theta;
+    public float coef_test = 5.0f;
 
     // Start is called before the first frame update
     void Start()
@@ -117,7 +120,6 @@ public class PlayerController : MonoBehaviour
     void Update()
     {
         calculatePosition();
-        calculateBreak();
         speed_left_text.text = $"Speed L: {this._current_speed_left}";
         speed_right_text.text = $"Speed R: {this._current_speed_right}";
         distance_text.text = $"Dist: {this.cumulative_distance} m";
@@ -128,15 +130,18 @@ public class PlayerController : MonoBehaviour
             float elapsedTime = Time.deltaTime;
 
             // Calcul des nouvelles vitesses et angle
-            (v, omega, theta) = CalculateVelocityAndAngle(_current_speed_left, _current_speed_right, distance_wheel_m, elapsedTime);
-
+            (v, omega, theta) = CalculateVelocityAndAngle(delta_counter_left * Time.deltaTime * coef_test, delta_counter_right * Time.deltaTime * coef_test, distance_wheel_m, elapsedTime);
+            delta_counter_left -= delta_counter_left * Time.deltaTime * coef_test;
+            delta_counter_right -= delta_counter_right * Time.deltaTime * coef_test;
             // Mettre à jour la position du prefab
-            transform.Translate(Vector3.back * v * elapsedTime);
-            cumulative_distance += v * elapsedTime;
+            //transform.Translate(Vector3.back * v * elapsedTime);
+            transform.Translate(Vector3.back * v);
+            cumulative_distance += v;
 
             // Mettre à jour la rotation du prefab
             transform.Rotate(Vector3.up, omega * elapsedTime * Mathf.Rad2Deg);
         }
+        //calculateBreak();
     }
 
     (float, float, float) CalculateVelocityAndAngle(float v_l, float v_r, float d, float t)
@@ -156,24 +161,43 @@ public class PlayerController : MonoBehaviour
 
     void calculateBreak()
     {
-        _current_speed_left -= _current_speed_left * brake_coef * Time.deltaTime;
-        _current_speed_left = Mathf.Max(0, _current_speed_left);
-        if(_current_speed_left < 0.1f)
+        //delta_counter_left = 0.0f;
+        //delta_counter_right = 0.0f;
+
+        delta_counter_left -= delta_counter_left * brake_coef * Time.deltaTime;
+        //delta_counter_left = Mathf.Max(0, delta_counter_left);
+        if(delta_counter_left < 0.1f)
         {
-            _current_speed_left = 0.0f;
+            delta_counter_left = 0.0f;
         }
-        _current_speed_right -= _current_speed_right * brake_coef * Time.deltaTime;
-        _current_speed_right = Mathf.Max(0, _current_speed_right);
-        if(_current_speed_right < 0.1f)
+        delta_counter_right -= delta_counter_right * brake_coef * Time.deltaTime;
+        //delta_counter_right = Mathf.Max(0, delta_counter_right);
+        if(delta_counter_right < 0.1f)
         {
-            _current_speed_right = 0.0f;
+            delta_counter_right = 0.0f;
         }
+
+
+        //_current_speed_left -= _current_speed_left * brake_coef * Time.deltaTime;
+        //_current_speed_left = Mathf.Max(0, _current_speed_left);
+        //if (_current_speed_left < 0.1f)
+        //{
+        //    _current_speed_left = 0.0f;
+        //}
+        //_current_speed_right -= _current_speed_right * brake_coef * Time.deltaTime;
+        //_current_speed_right = Mathf.Max(0, _current_speed_right);
+        //if (_current_speed_right < 0.1f)
+        //{
+        //    _current_speed_right = 0.0f;
+        //}
     }
 
     public void ResetSpeed()
     {
         _current_speed_left = 0.0f;
         _current_speed_right = 0.0f;
+        delta_counter_left = 0.0f;
+        delta_counter_right = 0.0f;
     }
 
     void calculatePosition()
@@ -197,16 +221,17 @@ public class PlayerController : MonoBehaviour
         {
             if (last_left_event != null)
             {
-                int delta_t;
-                if (_left_event.timestamp > last_left_event.timestamp) {
-                    delta_t = _left_event.timestamp - last_left_event.timestamp;
-                } else
-                {
-                    delta_t = short.MaxValue - last_left_event.timestamp + (_left_event.timestamp - short.MinValue);
-                }
+                //int delta_t;
+                //if (_left_event.timestamp > last_left_event.timestamp) {
+                //    delta_t = _left_event.timestamp - last_left_event.timestamp;
+                //} else
+                //{
+                //    delta_t = short.MaxValue - last_left_event.timestamp + (_left_event.timestamp - short.MinValue);
+                //}
                 int delta_counter = _left_event.counter - last_left_event.counter;
+                delta_counter_left += delta_counter * wheel_diameter_m * Mathf.PI;
 
-                speed_left = 3.6f * delta_counter * wheel_diameter_mm * Mathf.PI / delta_t;
+                //speed_left = 3.6f * delta_counter * wheel_diameter_m * Mathf.PI / delta_t;
 
                 this._current_speed_left = speed_left;
                 /* Save as last received event */
@@ -228,8 +253,8 @@ public class PlayerController : MonoBehaviour
                     delta_t = short.MaxValue - last_right_event.timestamp + (_right_event.timestamp - short.MinValue);
                 }
                 int delta_counter = _right_event.counter - last_right_event.counter;
-
-                speed_right = 3.6f * delta_counter * wheel_diameter_mm * Mathf.PI / delta_t;
+                delta_counter_right += delta_counter * wheel_diameter_m * Mathf.PI;
+               // speed_right = 3.6f * delta_counter * wheel_diameter_m * Mathf.PI / delta_t;
 
                 this._current_speed_right = speed_right;
             }
